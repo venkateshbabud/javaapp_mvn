@@ -7,5 +7,24 @@ jobs:
     runs-on: ubuntu-latest
     
     steps: 
-      - run: echo "hello world"
+      - run: echo "This will Build and push the Docker images into Docker repo"
+      - name: Checkout
+        uses: actions/checkout@v3.5.3
+      - name: Docker Login
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWD }}
+      - name: Docker Metadata action
+        uses: docker/metadata-action@818d4b7b91585d195f67373fd9cb0332e31a7175
+        with:
+          images: erdipu/java_app
+      - name: Build and push Docker images
+        uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          
 
