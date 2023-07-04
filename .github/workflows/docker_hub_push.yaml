@@ -29,6 +29,7 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWD }}
       - name: Docker Metadata action
+        id: meta
         uses: docker/metadata-action@818d4b7b91585d195f67373fd9cb0332e31a7175
         with:
           images: erdipu/java_app
