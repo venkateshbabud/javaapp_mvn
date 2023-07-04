@@ -1,3 +1,11 @@
 name: docker hub push
 
 on: [push]
+
+jobs: 
+  docker_hub_images:
+    runs-on: ubuntu-latest
+    
+    steps: 
+      - run: echo "hello world"
+
