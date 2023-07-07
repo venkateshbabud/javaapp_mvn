@@ -1,5 +1,3 @@
-Apologies for the confusion. If you want to run the application manually on your local machine without using Docker, you can follow the instructions below:
-
 ## Prerequisites
 
 - Java Development Kit (JDK): Make sure you have JDK 11 or later installed on your machine. You can download JDK from the official website: [https://www.oracle.com/java/technologies/javase-jdk11-downloads.html](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
