@@ -9,7 +9,7 @@
 
 2. Open a terminal or command prompt and navigate to the project's root directory.
 
-3. Build the application using Maven by running the following command:
+3. Build the application using Maven by running the following command.:
    ```shell
    mvn clean package
    ```
