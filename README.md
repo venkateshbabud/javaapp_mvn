@@ -5,7 +5,7 @@
 
 ## Build and Run the Application
 
-1. Clone the repository or download the source code for the Colorful App.
+1. Clone the repository or download the source code for the Colorful App..
 
 2. Open a terminal or command prompt and navigate to the project's root directory.
 
