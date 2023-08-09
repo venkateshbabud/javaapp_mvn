@@ -35,7 +35,3 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-      - name: Trigger Dependency Workflow
-        uses: actions/workflow_run@v2
-        with:
-          workflow: "docker_hub_push.yaml"
