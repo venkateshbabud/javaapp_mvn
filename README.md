@@ -24,7 +24,7 @@
    java -jar colorful-app-1.0.0.jar
    ```
 
-6. The application should now be running and accessible at [http://localhost:8080](http://localhost:8080).
+6. The application should now be running and accessible at [http://localhost:8080](http://localhost:8080)
 
 7. Open a web browser and visit [http://localhost:8080](http://localhost:8080) to see the colorful message.
 
