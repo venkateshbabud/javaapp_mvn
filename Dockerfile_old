@@ -6,7 +6,7 @@ RUN mvn dependency:go-offline
 COPY src/ ./src/
 RUN mvn package -DskipTests
 
-# Use a lightweight Java image as the base image.
+# Use a lightweight Java image as the base image.,
 FROM openjdk:11-jre-slim
 WORKDIR /app
 COPY --from=build /app/target/colorful-app-1.0.0.jar .
