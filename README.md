@@ -3,7 +3,7 @@
 - Java Development Kit (JDK): Make sure you have JDK 11 or later installed on your machine. You can download JDK from the official website: [https://www.oracle.com/java/technologies/javase-jdk11-downloads.html](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
 - Apache Maven: Ensure that Apache Maven is installed on your machine. You can download Maven from the official website: [https://maven.apache.org/download.cgi](https://maven.apache.org/download.cgi)
 
-## Build and Run the Application
+## Build and Run the Applications
 
 1. Clone the repository or download the source code for the Colorful App..
 
