@@ -3,7 +3,7 @@ name: docker hub push
 on:
   workflow_run:
     workflows:
-      - "sonarqube_test" # The name of the triggering workflows
+      - "sonarqube_test" # The name of the triggering workflowss
     types:
       - completed
 
