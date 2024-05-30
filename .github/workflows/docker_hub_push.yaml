@@ -9,7 +9,7 @@ on:
 
 jobs: 
   docker_hub_images:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps: 
       - run: echo "This will Build, execute and push the Docker images into Docker repo ji"
       - name: Checkout
