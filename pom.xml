@@ -26,11 +26,6 @@
            <artifactId>spring-boot-starter-web</artifactId>
            <version>${spring-boot.version}</version>
        </dependency>
-       <dependency>
-            <groupId>com.example</groupId>
-            <artifactId>colorful-app</artifactId>
-            <version>1.0.0</version>
-       </dependency>
    </dependencies>
          <distributionManagement>
             <repository>
