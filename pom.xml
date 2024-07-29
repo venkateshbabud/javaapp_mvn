@@ -21,6 +21,13 @@
            <version>${spring-boot.version}</version>
        </dependency>
    </dependencies>
+         <distributionManagement>
+            <repository>
+                 <id>github</id>
+                 <name>GitHub Packages</name>
+                 <url>https://maven.pkg.github.com/BrownAdvisory/touchpoint-2-0-common-libraries</url>
+            </repository>
+        </distributionManagement>
    <build>
        <plugins>
            <plugin>
