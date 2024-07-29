@@ -12,7 +12,7 @@
    <repositories>
         <repository>
            <id>github</id>
-           <url>https://maven.pkg.github.com/azvenkat7/javaapp_mvn</url>
+           <url>https://maven.pkg.github.com/venkateshbabud/javaapp_mvn</url>
         </repository>
    </repositories>
    <dependencies>
@@ -31,7 +31,7 @@
             <repository>
                  <id>github</id>
                  <name>GitHub Packages</name>
-                 <url>https://maven.pkg.github.com/azvenkat7/javaapp_mvn</url>
+                 <url>https://maven.pkg.github.com/venkateshbabud/javaapp_mvn</url>
             </repository>
         </distributionManagement>
    <build>
