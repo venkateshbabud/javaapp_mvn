@@ -3,6 +3,9 @@ name: Java CI with Maven
 on:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened, closed]
 
 jobs:
   build:
@@ -22,8 +25,8 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-          settings-path: ${{ github.workspace }} # location for the settings.xml file
+          server-id: github  # Value of the distributionManagement/repository/id field of the pom.xml
+          settings-path: ${{ github.workspace }}  # location for the settings.xml file
 
       - name: Cache Maven packages
         uses: actions/cache@v1
@@ -39,3 +42,35 @@ jobs:
         run: mvn --batch-mode deploy
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Post PR status comment
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const checklist = [
+              { name: 'Checkout code', status: '${{ job.status }}' },
+              { name: 'Set up JDK 21', status: '${{ job.status }}' },
+              { name: 'Cache Maven packages', status: '${{ job.status }}' },
+              { name: 'Build with Maven', status: '${{ job.status }}' },
+              { name: 'Publish to GitHub Packages Apache Maven', status: '${{ job.status }}' }
+            ];
+
+            let checklistText = '### Job Status Checklist\n';
+            checklist.forEach(item => {
+              if (item.status === 'success') {
+                checklistText += `- [x] ${item.name}\n`;
+              } else {
+                checklistText += `- [ ] ${item.name}\n`;
+              }
+            });
+
+            const prNumber = context.payload.pull_request.number;
+            const repo = context.repo;
+            
+            await github.issues.createComment({
+              issue_number: prNumber,
+              owner: repo.owner,
+              repo: repo.repo,
+              body: checklistText
+            });
