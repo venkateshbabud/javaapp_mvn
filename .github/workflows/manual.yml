@@ -1,0 +1,78 @@
+
+name: Deploy Docker Image to Azure Environments
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Choose the environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - QA
+          - PRE
+          - UAT
+
+      docker_tag:
+        description: 'Tag of the Docker image to deploy'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.MY_PAT }}
+      GITHUB_ACTOR: ${{ secrets.MY_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_SP_APP_ID }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_SP_PASSWORD }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_VAULT_URL: ${{ secrets.AZURE_VAULT_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        
+      - name: Login to Azure
+        run: |
+          # Login to Azure
+          az login --service-principal -u ${{ secrets.AZURE_SP_APP_ID }} -p ${{ secrets.AZURE_SP_PASSWORD }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+
+          # Login to Azure Container Registry
+          az acr login --name ${{ secrets.ACR_NAME }}
+          
+      - name: Set environment-specific variables
+        id: set_vars
+        run: |
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Docker Tag: ${{ github.event.inputs.docker_tag }}"
+          
+          # Set environment-specific configurations
+          if [[ "${{ github.event.inputs.environment }}" == "QA" ]]; then
+            echo "Deploying to QA"
+            echo "DOCKER_IMAGE=${{ secrets.ACR_NAME }}:${{ github.event.inputs.docker_tag }}" >> $GITHUB_ENV
+          elif [[ "${{ github.event.inputs.environment }}" == "UAT" ]]; then
+            echo "Deploying to UAT"
+            echo "DOCKER_IMAGE=${{ secrets.ACR_NAME }}:${{ github.event.inputs.docker_tag }}" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy to Kubernetes
+        run: |
+          # Apply the deployment and service files
+          kubectl apply -f k8s/user-service-deployment.yaml
+
+          # Update the image in the deployment with the latest tag
+          kubectl set image deployment/user-service user-service=${{ steps.tag_image.outputs.ACR_IMAGE_TAG }}
+
+      - name: Restart Kubernetes deployment
+        run: |
+          # Restart the deployment to ensure the new image is pulled
+          kubectl rollout restart deployment/user-service
