@@ -1,8 +1,8 @@
-
-name: Deploy Docker Image to Azure Environments
+name: Manual workflow to deploy into Azure Env.
 
 on:
   workflow_dispatch:
+    # Inputs the workflow accepts
     inputs:
       environment:
         description: 'Choose the environment to deploy to'
@@ -12,14 +12,13 @@ on:
           - QA
           - PRE
           - UAT
-
       docker_tag:
         description: 'Tag of the Docker image to deploy'
         required: true
         type: string
 
 jobs:
-  build:
+  deploy:
     runs-on: self-hosted
     permissions:
       contents: read
@@ -29,50 +28,50 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.MY_PAT }}
       GITHUB_ACTOR: ${{ secrets.MY_ID }}
-      AZURE_CLIENT_ID: ${{ secrets.AZURE_SP_APP_ID }}
-      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_SP_PASSWORD }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      AZURE_VAULT_URL: ${{ secrets.AZURE_VAULT_URL }}
-
+      
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        
-      - name: Login to Azure
-        run: |
-          # Login to Azure
-          az login --service-principal -u ${{ secrets.AZURE_SP_APP_ID }} -p ${{ secrets.AZURE_SP_PASSWORD }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-
-          # Login to Azure Container Registry
-          az acr login --name ${{ secrets.ACR_NAME }}
-          
       - name: Set environment-specific variables
         id: set_vars
         run: |
           echo "Environment: ${{ github.event.inputs.environment }}"
           echo "Docker Tag: ${{ github.event.inputs.docker_tag }}"
-          
-          # Set environment-specific configurations
-          if [[ "${{ github.event.inputs.environment }}" == "QA" ]]; then
-            echo "Deploying to QA"
-            echo "DOCKER_IMAGE=${{ secrets.ACR_NAME }}:${{ github.event.inputs.docker_tag }}" >> $GITHUB_ENV
-          elif [[ "${{ github.event.inputs.environment }}" == "UAT" ]]; then
-            echo "Deploying to UAT"
-            echo "DOCKER_IMAGE=${{ secrets.ACR_NAME }}:${{ github.event.inputs.docker_tag }}" >> $GITHUB_ENV
-          fi
+          if ("${{ github.event.inputs.environment }}" -eq 'QA') {
+            echo "ACR_NAME=${{ secrets.ACR_NAME }}" >> $GITHUB_ENV
+            echo "SUBSCRIPTION=${{ secrets.QA_SUBSCRIPTION }}" >> $GITHUB_ENV
+            echo "RESOURCE_GROUP=rg-default-tp2a-dev-eastus2" >> $GITHUB_ENV
+            echo "AKS_NAME=clstr-tp2a-dev-eastus2" >> $GITHUB_ENV
+            echo "AZURE_CLIENT_ID=${{ secrets.AZURE_SP_APP_ID }}" >> $GITHUB_ENV
+            echo "AZURE_CLIENT_SECRET=${{ secrets.AZURE_SP_PASSWORD }}" >> $GITHUB_ENV
+          } elseif ("${{ github.event.inputs.environment }}" -eq 'UAT') {
+            echo "ACR_NAME=${{ secrets.UAT_ACR_NAME }}" >> $GITHUB_ENV
+            echo "SUBSCRIPTION=${{ secrets.UAT_SUBSCRIPTION }}" >> $GITHUB_ENV
+            echo "RESOURCE_GROUP=rg-default-tp2-uat-eastus2" >> $GITHUB_ENV
+            echo "AKS_NAME=aks-tp2a-uat-eastus2-001" >> $GITHUB_ENV
+            echo "AZURE_CLIENT_ID=${{ secrets.UAT_AZURE_SP_APP_ID }}" >> $GITHUB_ENV
+            echo "AZURE_CLIENT_SECRET=${{ secrets.UAT_AZURE_SP_PASSWORD }}" >> $GITHUB_ENV
 
-      - name: Deploy to Kubernetes
+          # Debugging
+          echo "ACR_NAME: ${ACR_NAME}"
+          echo "SUBSCRIPTION: ${SUBSCRIPTION}"
+          echo "RESOURCE_GROUP: ${RESOURCE_GROUP}"
+          echo "AKS_NAME: ${AKS_NAME}"
+          echo "AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}"
+          echo "AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}"
+
+      - name: Login to Azure
         run: |
-          # Apply the deployment and service files
-          kubectl apply -f k8s/user-service-deployment.yaml
+          az login --service-principal -u "${{ env.AZURE_CLIENT_ID }}" -p "${{ env.AZURE_CLIENT_SECRET }}" --tenant "${{ env.AZURE_TENANT_ID }}"
+          az account set --subscription "${{ env.SUBSCRIPTION }}"
+          az account show --query "name"  # This shows the subscription which we were logged in to
 
-          # Update the image in the deployment with the latest tag
-          kubectl set image deployment/user-service user-service=${{ steps.tag_image.outputs.ACR_IMAGE_TAG }}
+      - name: Login to Azure Container Registry
+        run: az acr login --name "${{ env.ACR_NAME }}"
 
-      - name: Restart Kubernetes deployment
+      - name: Get AKS credentials
+        run: az aks get-credentials --resource-group "${{ env.RESOURCE_GROUP }}" --name "${{ env.AKS_NAME }}" --admin
+
+      - name: Deploy to AKS
         run: |
-          # Restart the deployment to ensure the new image is pulled
-          kubectl rollout restart deployment/user-service
+          kubectl set image deployment/user-service user-service="${{ env.ACR_NAME }}".azurecr.io/"${{ github.event.inputs.docker_tag }}"
+          kubectl rollout status deployment/user-service
