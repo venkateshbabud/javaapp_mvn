@@ -1,31 +1,30 @@
-name: Delete old workflow runs
+name: Delete Workflow Runs
 
 on:
-  workflow_dispatch:  # Allow manual trigger if needed
-
+  workflow_dispatch:  # Manually trigger the workflow
 
 jobs:
-  del_runs:
+  clean_up:
     runs-on: ubuntu-latest
     permissions:
-      actions: write  # Permissions to delete workflow runs
-      contents: read
+      actions: write   # Ensure write permission is set
     steps:
-      - name: Install GitHub CLI
+      - name: Get old workflow runs
         run: |
-          sudo apt update
-          sudo apt install gh
-
-      - name: Authenticate with GitHub CLI
-        run: |
-          echo ${{ github.token }} | gh auth login --with-token
-
-      - name: Delete old workflow runs
-        run: |
-          # Get all workflow runs older than 30 days
-          gh api repos/${{ github.repository }}/actions/runs \
-            --jq '.workflow_runs[] | select(.created_at < "30 days ago") | .id' | while read run_id; do
-              # Delete the old workflow run
-              gh api repos/${{ github.repository }}/actions/runs/$run_id --method DELETE
-              echo "Deleted workflow run $run_id"
-            done
+          echo "Fetching workflow runs older than 30 days"
+          run_date=$(date -d '30 days ago' --utc +%Y-%m-%dT%H:%M:%SZ)
+          echo "Looking for runs older than: $run_date"
+          
+          response=$(curl -H "Authorization: Bearer ${{ github.token }}" \
+                           -H "Accept: application/vnd.github.v3+json" \
+                           https://api.github.com/repos/${{ github.repository }}/actions/runs)
+                           
+          echo "Response: $response"
+          
+          # Filter and delete workflow runs older than 30 days
+          echo $response | jq -r ".workflow_runs[] | select(.created_at < \"$run_date\") | .id" | while read run_id; do
+            echo "Deleting run $run_id..."
+            curl -X DELETE -H "Authorization: Bearer ${{ github.token }}" \
+                  https://api.github.com/repos/${{ github.repository }}/actions/runs/$run_id
+            echo "Deleted run $run_id"
+          done
