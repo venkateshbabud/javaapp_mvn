@@ -11,7 +11,7 @@ jobs:
       contents: read
     steps:
       - name: Delete workflow runs
-        uses: venkateshbabud/javaapp_mvn/delete-workflow-runs@latest
+        uses: venkateshbabud/javaapp_mvn/delete-workflow-runs@2.321.0
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
