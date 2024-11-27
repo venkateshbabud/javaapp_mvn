@@ -15,7 +15,7 @@ jobs:
           run_date=$(date -d '30 days ago' --utc +%Y-%m-%dT%H:%M:%SZ)
           echo "Looking for runs older than: $run_date"
           
-          response=$(curl -H "Authorization: Bearer ${{ github.token }}" \
+          response=$(curl -H "Authorization: Bearer ${{ secrets.PAT }}" \
                            -H "Accept: application/vnd.github.v3+json" \
                            https://api.github.com/repos/${{ github.repository }}/actions/runs)
                            
@@ -24,7 +24,7 @@ jobs:
           # Filter and delete workflow runs older than 30 days
           echo $response | jq -r ".workflow_runs[] | select(.created_at < \"$run_date\") | .id" | while read run_id; do
             echo "Deleting run $run_id..."
-            curl -X DELETE -H "Authorization: Bearer ${{ github.token }}" \
+            curl -X DELETE -H "Authorization: Bearer ${{ secrets.PAT }}" \
                   https://api.github.com/repos/${{ github.repository }}/actions/runs/$run_id
             echo "Deleted run $run_id"
           done
