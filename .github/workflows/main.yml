@@ -11,8 +11,8 @@ jobs:
     steps:
       - name: Get old workflow runs
         run: |
-          echo "Fetching workflow runs older than 30 days"
-          run_date=$(date -d '30 days ago' --utc +%Y-%m-%dT%H:%M:%SZ)
+          echo "Fetching workflow runs older than 5 days"
+          run_date=$(date -d '5 days ago' --utc +%Y-%m-%dT%H:%M:%SZ)
           echo "Looking for runs older than: $run_date"
 
           # Initialize page number and response variable
@@ -33,7 +33,7 @@ jobs:
             
             echo "Response from page $page: $response"
 
-            # Filter and delete workflow runs older than 30 days
+            # Filter and delete workflow runs older than 5 days
             echo "$response" | jq -r ".workflow_runs[] | select(.created_at < \"$run_date\") | .id" | while read run_id; do
               echo "Deleting run $run_id..."
               curl -X DELETE -H "Authorization: Bearer ${{ secrets.PAT }}" \
