@@ -11,8 +11,8 @@ jobs:
     steps:
       - name: Get old workflow runs
         run: |
-          echo "Fetching workflow runs older than 30 days"
-          run_date=$(date -d '30 days ago' --utc +%Y-%m-%dT%H:%M:%SZ)
+          echo "Fetching workflow runs older than 5 days"
+          run_date=$(date -d '5 days ago' --utc +%Y-%m-%dT%H:%M:%SZ)
           echo "Looking for runs older than: $run_date"
           
           response=$(curl -H "Authorization: Bearer ${{ secrets.PAT }}" \
@@ -20,11 +20,11 @@ jobs:
                            https://api.github.com/repos/${{ github.repository }}/actions/runs)
                            
 
-          # Filter and get workflow runs older than 30 days
+          # Filter and get workflow runs older than 5 days
           old_runs=$(echo $response | jq -r ".workflow_runs[] | select(.created_at < \"$run_date\") | .id")
           
           if [ -z "$old_runs" ]; then
-            echo "No workflow runs older than 30 days found."
+            echo "No workflow runs older than 5 days found."
           else
             # Delete old workflow runs
             echo "$old_runs" | while read run_id; do
