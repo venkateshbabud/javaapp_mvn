@@ -62,8 +62,11 @@ jobs:
     - name: Post checklist results
       if: github.event_name == 'pull_request'
       run: |
-        checklist="${{ steps.generate_checklist.outputs.checklist }}"
-        body="{\"body\": \"$checklist\"}"
-        url="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
-        headers="Authorization: token ${{ secrets.GITHUB_TOKEN }}"
-        curl -X POST -H "$headers" -d "$body" "$url"
+          $checklist = "${{ env.checklist }}"
+          $body = @{ body = $checklist } | ConvertTo-Json
+          $url = "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+          $headers = @{
+            "Authorization" = "token ${{ secrets.PAT }}"
+            "Content-Type"  = "application/json"
+          }
+          Invoke-WebRequest -Uri $url -Method POST -Headers $headers -Body $body
