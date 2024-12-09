@@ -31,17 +31,23 @@ jobs:
     - name: Build with Maven
       id: maven-build
       run: |
+        set -e # Exit on errors
         mvn -B package --file pom.xml
+      shell: bash
 
     - name: Generate checklist results
-      id: generate_checklist
       run: |
+        # Initialize the checklist
         checklist="## Automated PR Checklist Results:\n- Build with Maven: []"
-        if [[ "${{ steps.maven-build.conclusion }}" == "success" ]]; then
+
+        # Check the result of the previous step
+        if [[ $? -eq 0 ]]; then
           checklist="${checklist//\[ \]/\[x\]}"
+          echo "Maven build was successful."
         fi
-        echo "Checklist:\n$checklist" # Debugging output
+        echo "Checklist:\n$checklist"  # Debugging output for checklist
         echo "checklist=$checklist" >> $GITHUB_ENV
+      shell: bash
 
     - name: Debug checklist output
       run: echo -e "Checklist after generation:\n${{ env.checklist }}"
