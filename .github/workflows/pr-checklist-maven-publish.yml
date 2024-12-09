@@ -3,15 +3,13 @@ name: Maven Package
 on:
   push:
     branches:
-      - "main"  
+      - "*"
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
-      - main  # Trigger on pull requests targeting the main branch
-
+      - "*"  
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -37,25 +35,24 @@ jobs:
     - name: Generate checklist results
       id: generate_checklist
       run: |
-        $checklist = @"
-        ## Automated PR Checklist Results:
+        checklist="## Automated PR Checklist Results:
         - [ ] Build with Maven
-        "@
-
+        "
+        
         # If the Maven build was successful, mark the build step as completed
-        if ("${{ steps.maven-build.outcome }}" -eq "success") {
-          $checklist = $checklist -replace "Build with Maven", "[x] Build with Maven"
-        }
+        if [[ "${{ steps.maven-build.outcome }}" == "success" ]]; then
+          checklist="${checklist//- \[ \] Build with Maven/- \[x\] Build with Maven}"
+        fi
 
-        Write-Host "Updated checklist: $checklist"
+        echo "Updated checklist: $checklist"
         echo "checklist=$checklist" >> $GITHUB_ENV
 
     # Debug checklist value and GitHub API URL
     - name: Debug checklist value and GitHub API URL
       run: |
-        $checklist = "${{ env.checklist }}"
-        Write-Host "Raw output of checklist: $checklist"
-        Write-Host "Length of checklist: $($checklist.Length)"
+        checklist="${{ env.checklist }}"
+        echo "Raw output of checklist: $checklist"
+        echo "Length of checklist: ${#checklist}"
         echo "Repository: ${{ github.repository }}"
         echo "PR Number: ${{ github.event.pull_request.number }}"
         echo "GitHub API URL: https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
@@ -64,11 +61,8 @@ jobs:
     - name: Post checklist results
       if: github.event_name == 'pull_request'
       run: |
-        $checklist = "${{ env.checklist }}"
-        $body = @{ body = $checklist } | ConvertTo-Json
-        $url = "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
-        $headers = @{
-          "Authorization" = "token ${{ secrets.PAT }}"
-          "Content-Type"  = "application/json"
-        }
-        Invoke-WebRequest -Uri $url -Method POST -Headers $headers -Body $body
+        checklist="${{ env.checklist }}"
+        body="{\"body\": \"$checklist\"}"
+        url="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+        headers="Authorization: token ${{ secrets.GITHUB_TOKEN }}"
+        curl -X POST -H "$headers" -d "$body" "$url"
