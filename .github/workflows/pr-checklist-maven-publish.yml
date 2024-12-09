@@ -7,14 +7,15 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
-      - "*"  
+      - "*"
+
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      pull-requests: write  # Ensure write access for posting comments
+      pull-requests: write
 
     steps:
     - uses: actions/checkout@v4
@@ -24,8 +25,8 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
+        server-id: github
+        settings-path: ${{ github.workspace }}
 
     - name: Build with Maven
       id: maven-build
@@ -38,13 +39,13 @@ jobs:
         checklist="## Automated PR Checklist Results:
         - [ ] Build with Maven
         "
-        
+
         # If the Maven build was successful, mark the build step as completed
         if [[ "${{ steps.maven-build.outcome }}" == "success" ]]; then
           checklist="${checklist//- \[ \] Build with Maven/- \[x\] Build with Maven}"
         fi
 
-        echo "Updated checklist: $checklist"
+        # Ensure the checklist is safe for GITHUB_ENV
         echo "checklist=$checklist" >> $GITHUB_ENV
 
     # Debug checklist value and GitHub API URL
