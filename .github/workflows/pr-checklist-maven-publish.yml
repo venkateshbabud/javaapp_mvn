@@ -32,21 +32,15 @@ jobs:
       id: maven-build
       run: |
         mvn -B package --file pom.xml
-        echo "Build status: $?"
-      continue-on-error: true  # Continue even if the Maven build fails
 
     - name: Generate checklist results
       id: generate_checklist
       run: |
-        # Initialize the checklist with unchecked
         checklist="## Automated PR Checklist Results:\n- Build with Maven: []"
-
-        # Check the conclusion of the previous step
-        if [[ "${{ steps.maven-build.outcome }}" == "success" ]]; then
+        if [[ "${{ steps.maven-build.conclusion }}" == "success" ]]; then
           checklist="${checklist//\[ \]/\[x\]}"
-          echo "Maven build was successful."
         fi
-        echo "Checklist:\n$checklist" # For debugging
+        echo "Checklist:\n$checklist" # Debugging output
         echo "checklist=$checklist" >> $GITHUB_ENV
 
     - name: Debug checklist output
