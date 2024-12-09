@@ -18,47 +18,38 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Set up JDK 11
-        uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-          server-id: github
-          settings-path: ${{ github.workspace }}
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        server-id: github
+        settings-path: ${{ github.workspace }}
 
-      - name: Build with Maven
-        id: maven-build
-        run: mvn -B package --file pom.xml
+    - name: Build with Maven
+      id: maven-build
+      run: mvn -B package --file pom.xml
 
-      # Generate checklist results
-      - name: Generate checklist results
-        id: generate_checklist
-        run: |
-          checklist="## Automated PR Checklist Results:
-          - Build with Maven: [ ]"
-          if [[ "${{ steps.maven-build.outcome }}" == "success" ]]; then
-            checklist="${checklist//- Build with Maven: \[ \]/- Build with Maven: [x]}"
-          fi
-          echo "checklist=$checklist" >> $GITHUB_ENV
+    # Generate checklist results
+    - name: Generate checklist results
+      id: generate_checklist
+      run: |
+        checklist="## Automated PR Checklist Results:- Build with Maven: []"
+        if [[ "${{ steps.maven-build.outcome }}" == "success" ]]; then
+          checklist="${checklist//- Build with Maven: \[ \]/- Build with Maven: [x]}"
+        fi
+        # Debug the final checklist value before setting it
+        echo "Final checklist: $checklist"
+        # Set the checklist as an environment variable
+        echo "checklist=$checklist" >> $GITHUB_ENV
 
-      # Debug checklist value and GitHub API URL
-      - name: Debug checklist value and GitHub API URL
-        run: |
-          checklist="${{ steps.generate_checklist.outputs.checklist }}"
-          echo "Raw output of checklist: $checklist"
-          echo "Length of checklist: ${#checklist}"
-          echo "Repository: ${{ github.repository }}"
-          echo "PR Number: ${{ github.event.pull_request.number }}"
-          echo "GitHub API URL: https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
-
-      # Post checklist results as a comment on the PR
-      - name: Post checklist results
-        if: github.event_name == 'pull_request'
-        run: |
-          checklist="${{ steps.generate_checklist.outputs.checklist }}"
-          body="{\"body\": \"$checklist\"}"
-          url="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
-          headers="Authorization: token ${{ secrets.GITHUB_TOKEN }}"
-          curl -X POST -H "$headers" -d "$body" "$url"
+    # Post checklist results as a comment on the PR
+    - name: Post checklist results
+      if: github.event_name == 'pull_request'
+      run: |
+        checklist="${{ env.checklist }}"
+        body="{\"body\": \"$checklist\"}"
+        url="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+        curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "$body" "$url"
