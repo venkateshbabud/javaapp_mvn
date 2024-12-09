@@ -45,13 +45,13 @@ jobs:
           checklist="${checklist//- Build with Maven: \[ \]/- Build with Maven: [x]}"
         fi
 
-        # Echo the checklist to the GitHub Actions environment
-        echo "checklist=$checklist" >> $GITHUB_ENV
+        # Output the checklist directly (no need to use GITHUB_ENV here)
+        echo "checklist=$checklist"
 
     # Debug checklist value and GitHub API URL
     - name: Debug checklist value and GitHub API URL
       run: |
-        checklist="${{ env.checklist }}"
+        checklist="${{ steps.generate_checklist.outputs.checklist }}"
         echo "Raw output of checklist: $checklist"
         echo "Length of checklist: ${#checklist}"
         echo "Repository: ${{ github.repository }}"
@@ -62,7 +62,7 @@ jobs:
     - name: Post checklist results
       if: github.event_name == 'pull_request'
       run: |
-        checklist="${{ env.checklist }}"
+        checklist="${{ steps.generate_checklist.outputs.checklist }}"
         body="{\"body\": \"$checklist\"}"
         url="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
         headers="Authorization: token ${{ secrets.GITHUB_TOKEN }}"
