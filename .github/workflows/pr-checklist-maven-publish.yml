@@ -37,15 +37,19 @@ jobs:
       id: generate_checklist
       run: |
         # Define the checklist format with placeholders instead of markdown checkboxes
-        checklist="## Automated PR Checklist Results:
-        - Build with Maven: [ ]"
+        checklist=$(cat <<EOF
+## Automated PR Checklist Results:
+- Build with Maven: [ ]
+EOF
+        )
 
         # If the Maven build was successful, update the checklist with a checked box
         if [[ "${{ steps.maven-build.outcome }}" == "success" ]]; then
           checklist="${checklist//- Build with Maven: \[ \]/- Build with Maven: [x]}"
         fi
 
-        echo "::set-output name=checklist::$checklist""
+        # Output the checklist as a job output
+        echo "::set-output name=checklist::$checklist"
 
     # Debug checklist value and GitHub API URL
     - name: Debug checklist value and GitHub API URL
