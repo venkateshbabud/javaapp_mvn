@@ -45,8 +45,8 @@ jobs:
           checklist="${checklist//- Build with Maven: \[ \]/- Build with Maven: [x]}"
         fi
 
-        # Output the checklist directly
-        echo "checklist=$checklist"
+        echo "checklist=$checklist" >> $GITHUB_ENV
+        echo "::set-output name=checklist::$checklist""
 
     # Debug checklist value and GitHub API URL
     - name: Debug checklist value and GitHub API URL
