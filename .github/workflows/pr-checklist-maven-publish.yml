@@ -35,11 +35,15 @@ jobs:
     - name: Generate checklist results
       id: generate_checklist
       run: |
-        checklist="## Automated PR Checklist Results:- Build with Maven: []"
+        checklist="## Automated PR Checklist Results:\n- Build with Maven: []"
         if [[ "${{ steps.maven-build.outcome }}" == "success" ]]; then
           checklist="${checklist//\[ \]/\[x\]}"
         fi
+        echo "Checklist:\n$checklist"  # Debug output for checklist
         echo "checklist=$checklist" >> $GITHUB_ENV
+
+    - name: Debug checklist output
+      run: echo -e "Checklist after generation:\n${{ env.checklist }}"
 
     - name: Post checklist results
       if: github.event_name == 'pull_request'
