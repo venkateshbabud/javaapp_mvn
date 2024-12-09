@@ -37,13 +37,19 @@ jobs:
       id: generate_checklist
       run: |
         checklist="## Automated PR Checklist Results:- Build with Maven: []"
+        echo "Initial checklist: $checklist"
         if [[ "${{ steps.maven-build.outcome }}" == "success" ]]; then
-          checklist="${checklist//- Build with Maven: \[ \]/- Build with Maven: [x]}"
+          echo "Maven build was successful"
+          checklist="${checklist//\[ \]/\[x\]}"
+        else 
+          echo "Maven build was not successful"
         fi
-        # Debug the final checklist value before setting it
         echo "Final checklist: $checklist"
-        # Set the checklist as an environment variable
         echo "checklist=$checklist" >> $GITHUB_ENV
+
+    # Debug checklist output
+    - name: Debug checklist output
+      run: echo "Checklist after generation: ${{ env.checklist }}"
 
     # Post checklist results as a comment on the PR
     - name: Post checklist results
