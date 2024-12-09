@@ -36,16 +36,16 @@ jobs:
     - name: Generate checklist results
       id: generate_checklist
       run: |
+        # Define the checklist format with placeholders instead of markdown checkboxes
         checklist="## Automated PR Checklist Results:
-        - [ ] Build with Maven
-        "
+        - Build with Maven: [ ]"
 
-        # If the Maven build was successful, mark the build step as completed
+        # If the Maven build was successful, update the checklist with a checked box
         if [[ "${{ steps.maven-build.outcome }}" == "success" ]]; then
-          checklist="${checklist//- \[ \] Build with Maven/- \[x\] Build with Maven}"
+          checklist="${checklist//- Build with Maven: \[ \]/- Build with Maven: [x]}"
         fi
 
-        # Ensure the checklist is safe for GITHUB_ENV
+        # Echo the checklist to the GitHub Actions environment
         echo "checklist=$checklist" >> $GITHUB_ENV
 
     # Debug checklist value and GitHub API URL
