@@ -41,7 +41,7 @@ jobs:
       - name: Publish to GitHub Packages Apache Maven
         run: mvn --batch-mode deploy
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Post PR status comment
         uses: actions/github-script@v5
