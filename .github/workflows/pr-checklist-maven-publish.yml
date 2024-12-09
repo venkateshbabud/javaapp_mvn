@@ -31,20 +31,21 @@ jobs:
     - name: Build with Maven
       id: maven-build
       run: |
-        set -e # Exit on errors
         mvn -B package --file pom.xml
-      shell: bash
-
+        
     - name: Generate checklist results
       run: |
         # Initialize the checklist
         checklist="## Automated PR Checklist Results:\n- Build with Maven: []"
 
-        # Check the result of the previous step
-        if [[ $? -eq 0 ]]; then
+        # Check if the Maven build step was successful
+        if [[ -f target/* ]]; then
           checklist="${checklist//\[ \]/\[x\]}"
           echo "Maven build was successful."
+        else
+          echo "Maven build failed."
         fi
+        
         echo "Checklist:\n$checklist"  # Debugging output for checklist
         echo "checklist=$checklist" >> $GITHUB_ENV
       shell: bash
@@ -57,6 +58,6 @@ jobs:
       if: github.event_name == 'pull_request'
       run: |
         checklist="${{ env.checklist }}"
-        body="{\"body\": \"$checklist\"}"
+        body="{\"body\": \"${checklist}\"}"
         url="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
         curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "$body" "$url"
