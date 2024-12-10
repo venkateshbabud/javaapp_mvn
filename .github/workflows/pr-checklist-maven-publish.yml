@@ -36,7 +36,7 @@ jobs:
     - name: Generate checklist results
       run: |
         # Initialize the checklist
-        checklist="## Automated PR Checklist Results:\n- Build with Maven: []"
+        checklist="Automated PR Checklist Results:\n- Build with Maven: []"
 
         # Check if the Maven build step was successful
         if [[ -f target/* ]]; then
